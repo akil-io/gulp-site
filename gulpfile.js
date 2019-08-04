@@ -45,12 +45,7 @@ const webpackConfig = {
   devtool: !PRODUCTION && 'source-map'
 }
 
-const fileTypes = {
-	page: '{htm,html,hbs,handlebars,json,yml,yaml}',
-	partial: '{htm,html,hbs,handlebars}',
-	data: '{js,json,yml,yaml}',
-	content: '{png,gif,jpg,jpeg,tif,tiff,svg,pdf,doc,docx,xls,xlsx,zip}'
-};
+const fileTypes = util.fileTypes;
 const PATHS = Object.assign({
 	dist: "dist",
 	logo: 'src/assets/img/logo.png',
