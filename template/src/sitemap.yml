@@ -1,0 +1,12 @@
+main:
+  url: /
+  index: true
+  type: yaml
+notfound:
+  url: /404
+  index: false
+  type: html
+contact:
+  url: /contact
+  index: true
+  type: json

@@ -9,6 +9,9 @@ const named = require('vinyl-named');
 const uncss = require('uncss');
 const webpackStream = require('webpack-stream');
 const webpack2 = require('webpack');
+const path = require('path');
+const fs = require('fs-extra');
+
 
 const util = require('./lib/util');
 const builder = require('./lib/builder');
@@ -18,7 +21,10 @@ const PRODUCTION = !!(yargs.argv.production);
 const $ = plugins();
 
 //CONFIGURATION
-const config = util.loadConfig(util.path('config.yml'));
+const config = Object.assign({
+  DISALLOW: []
+}, util.loadConfig(util.path('config.yml'), true));
+
 const faviconConfig = require('./favicon.json');
 const webpackConfig = {
   mode: (PRODUCTION ? 'production' : 'development'),
@@ -82,7 +88,9 @@ function pages() {
       partials: PATHS.partials,
       data: PATHS.data,
       helpers: PATHS.helpers,
-      isProduction: PRODUCTION
+      isProduction: PRODUCTION,
+      origin: config.ORIGIN,
+      port: config.PORT
     }))
     .pipe(sitemap({
       origin: config.ORIGIN,
@@ -173,26 +181,6 @@ function reload(done) {
   done();
 }
 
-const copy = gulp.parallel(copyAssets, copyPublic, copyContent);
-
-const build = gulp.series(clean, gulp.parallel(pages, javascript, images, copy), sass);
-
-const generate = require('./lib/generator')({
-	sitemap: PATHS.sitemap,
-	pages: PATHS.pages,
-	partials: PATHS.partials,
-});
-
-const favicon = function(done) {
-  realFavicon.generateFavicon(Object.assign({}, faviconConfig, {
-    masterPicture: util.path(PATHS.logo),
-    dest: util.path(PATHS.public),
-    markupFile: util.path(PATHS.faviconDataFile)
-  }), function() {
-    done();
-  });
-};
-
 function watch() {
   gulp.watch([
   		`${PATHS.assets}/**/*`,
@@ -211,10 +199,72 @@ function watch() {
   gulp.watch(`${PATHS.assets}/img/**/*`).on('all', gulp.series(images, browser.reload));
 }
 
+function initTemplate(done) {
+  fs.copy(
+    util.local('template'),
+    util.path('/'),
+    done
+  );
+}
+
+function create(done) {
+  if (yargs.argv._[1] === undefined) {
+    util.error('no target specified');
+    return done();
+  }
+  let [ category, target ] = yargs.argv._[1].split(":");
+  if (['layout','partial'].indexOf(category) === -1) {
+    util.error('category can be only "layout" or "partial"');
+    return done();
+  }
+  let sourcePath = util.local(`/lib/builder/${category}s/${target}.html`);
+  let targetPath = util.path(`/src/${category}s/${target}.html`);
+  if (!fs.existsSync(sourcePath)) {
+    util.error('source file does not exists');
+    return done();
+  }
+  if (fs.existsSync(targetPath)) {
+    util.error('target file already exists');
+    return done();
+  }
+
+  util.log(`create custom ${target} ${category}`);
+
+  fs.copy(
+    sourcePath,
+    targetPath,
+    done
+  );
+}
+
+const favicon = function(done) {
+  realFavicon.generateFavicon(Object.assign({}, faviconConfig, {
+    masterPicture: util.path(PATHS.logo),
+    dest: util.path(PATHS.public),
+    markupFile: util.path(PATHS.faviconDataFile)
+  }), function() {
+    done();
+  });
+};
+
+const generate = require('./lib/generator')({
+  sitemap: PATHS.sitemap,
+  pages: PATHS.pages,
+  partials: PATHS.partials,
+});
+
+const copy = gulp.parallel(copyAssets, copyPublic, copyContent);
+
+const build = gulp.series(clean, gulp.parallel(pages, javascript, images, copy), sass);
+
+const init = gulp.series(initTemplate, generate);
+
 //EXPORTS
 module.exports = {
 	generate,
 	favicon,
-	build
+	build,
+  init,
+  create
 };
-exports.default = gulp.series(build, server, watch);
+module.exports.default = gulp.series(build, server, watch);
