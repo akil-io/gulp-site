@@ -1,6 +1,6 @@
 {
   "name": "gulp-site",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "gulpfile.js",
   "repository": "git@github.com:akil-io/gulp-site.git",
   "author": "fenix <fenixdeveloper@gmail.com>",
@@ -49,6 +49,7 @@
     "uncss": "^0.16.2",
     "vinyl-named": "^1.1.0",
     "webpack": "^4.39.1",
-    "webpack-stream": "^5.2.1"
+    "webpack-stream": "^5.2.1",
+    "moment": "^2.24.0"
   }
 }
