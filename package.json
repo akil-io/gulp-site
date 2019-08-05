@@ -1,8 +1,14 @@
 {
   "name": "gulp-site",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "gulpfile.js",
-  "repository": "git@github.com:akil-io/gulp-site.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akil-io/gulp-site"
+  },
+  "bugs": {
+    "url": "https://github.com/akil-io/gulp-site/issues"
+  },
   "author": "fenix <fenixdeveloper@gmail.com>",
   "license": "MIT",
   "bin": {
