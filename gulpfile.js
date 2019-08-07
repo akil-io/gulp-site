@@ -128,7 +128,20 @@ function resetPages(done) {
 function sass() {
   const postCssPlugins = [
     autoprefixer({ overrideBrowserslist: COMPATIBILITY }),
-    PRODUCTION && uncss.postcssPlugin(UNCSS_OPTIONS)
+    PRODUCTION && uncss.postcssPlugin(Object.assign({}, UNCSS_OPTIONS, {
+      banner: false,
+      timeout: 0,
+      inject: function (window) {
+        window.document.querySelectorAll('script').forEach(s => s.remove());
+      }/*,
+      jsdom: {
+        features: {
+            FetchExternalResources: ['script'],
+            ProcessExternalResources: ['script']
+        },
+        runScripts: 'dangerously',
+      }*/
+    }))
   ].filter(Boolean);
 
   return gulp.src(PATHS.styles.map(entry => `${PATHS.assets}${entry}`))
