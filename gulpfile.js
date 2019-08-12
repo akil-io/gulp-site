@@ -43,7 +43,8 @@ function pages() {
       helpers: PATHS.helpers,
       isProduction: PRODUCTION,
       origin: config.ORIGIN,
-      port: config.PORT
+      port: config.PORT,
+      cdn: config.CDN
     }))
     .pipe($.if(config.INDEX.sitemap, sitemap({
       origin: config.ORIGIN,
@@ -86,7 +87,7 @@ function resetPages(done) {
 function sass() {
   const postCssPlugins = [
     autoprefixer({ overrideBrowserslist: COMPATIBILITY }),
-    PRODUCTION && config.UNCSS.enabled && uncss.postcssPlugin(Object.assign({}, UNCSS_OPTIONS, {
+    PRODUCTION && config.UNCSS.enabled && uncss.postcssPlugin(Object.assign({}, {
       banner: false,
       timeout: 0,
       inject: function (window) {
@@ -94,12 +95,12 @@ function sass() {
       },
       jsdom: {
         features: {
-            FetchExternalResources: ['script'],
-            ProcessExternalResources: ['script']
+            FetchExternalResources: [],
+            ProcessExternalResources: []
         },
-        runScripts: 'dangerously',
+        runScripts: 'no'
       }
-    }))
+    }, UNCSS_OPTIONS))
   ].filter(Boolean);
 
   return gulp.src(PATHS.styles.map(entry => `${PATHS.assets}${entry}`))

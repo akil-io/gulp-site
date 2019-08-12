@@ -22,7 +22,7 @@ const DEFAULT_CONFIG = {
     'android >= 4.4'
   ],
   UNCSS: {
-    enabled: true,
+    enabled: false,
     html: `dist/**/*.html`,
     ignore: [/^.is-.*/ig]
   },
@@ -60,6 +60,11 @@ const DEFAULT_CONFIG = {
       sass: [],
       entries: ['/js/app.js'],
       styles: ['/scss/app.scss']
+  },
+  CDN: {
+    root: undefined,
+    js: [],
+    css: []
   }
 };
 const CUSTOM_CONFIG= util.loadConfig(util.path('config.yml'), true);
