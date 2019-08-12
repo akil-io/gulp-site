@@ -62,10 +62,10 @@ const PATHS = Object.assign({
     entries: ['/js/app.js'],
     styles: ['/scss/app.scss']
 }, config.PATHS);
-const UNCSS_OPTIONS = Object.assign({
-	html: `${PATHS.dist}/**/*.html`,
-	ignore: []
-}, config.UNCSS_OPTIONS);
+const UNCSS_OPTIONS = {
+	html: config.UNCSS.html || `${PATHS.dist}/**/*.html`,
+	ignore: config.UNCSS.ignore || [/^.is-.*/ig]
+};
 const COMPATIBILITY = config.COMPATIBILITY || [
 	'last 2 versions',
 	'ie >= 9',
@@ -128,19 +128,19 @@ function resetPages(done) {
 function sass() {
   const postCssPlugins = [
     autoprefixer({ overrideBrowserslist: COMPATIBILITY }),
-    PRODUCTION && uncss.postcssPlugin(Object.assign({}, UNCSS_OPTIONS, {
+    PRODUCTION && config.UNCSS.enabled && uncss.postcssPlugin(Object.assign({}, UNCSS_OPTIONS, {
       banner: false,
       timeout: 0,
       inject: function (window) {
         window.document.querySelectorAll('script').forEach(s => s.remove());
-      }/*,
+      },
       jsdom: {
         features: {
             FetchExternalResources: ['script'],
             ProcessExternalResources: ['script']
         },
         runScripts: 'dangerously',
-      }*/
+      }
     }))
   ].filter(Boolean);
 
