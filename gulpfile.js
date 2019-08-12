@@ -12,67 +12,25 @@ const webpack2 = require('webpack');
 const path = require('path');
 const fs = require('fs-extra');
 
-
 const util = require('./lib/util');
 const builder = require('./lib/builder');
 const sitemap = require('./lib/sitemap');
 
-const PRODUCTION = !!(yargs.argv.production);
+const config = require('./settings');
+
+const PRODUCTION = config.PRODUCTION;
 const $ = plugins();
 
-//CONFIGURATION
-const config = Object.assign({
-  DISALLOW: []
-}, util.loadConfig(util.path('config.yml'), true));
-
-const faviconConfig = require('./favicon.json');
-const webpackConfig = {
-  mode: (PRODUCTION ? 'production' : 'development'),
-  module: {
-    rules: [
-      {
-        test: /\.js$/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: [ "@babel/preset-env" ],
-            compact: false
-          }
-        }
-      }
-    ]
-  },
-  devtool: !PRODUCTION && 'source-map'
-}
+const faviconConfig = config.FAVICON;
+const webpackConfig = config.WEBPACK;
 
 const fileTypes = util.fileTypes;
-const PATHS = Object.assign({
-	dist: "dist",
-	logo: 'src/assets/img/logo.png',
-	sitemap: 'src/sitemap.yml',
-	faviconDataFile: 'faviconData.json',
-	pages: 'src/pages',
-	layouts: 'src/layouts',
-	partials: 'src/partials',
-	public: 'src/public',
-	assets: 'src/assets',
-    data: 'src/data',
-    helpers: 'src/helpers',
-    sass: [],
-    entries: ['/js/app.js'],
-    styles: ['/scss/app.scss']
-}, config.PATHS);
+const PATHS = config.PATHS;
 const UNCSS_OPTIONS = {
 	html: config.UNCSS.html || `${PATHS.dist}/**/*.html`,
 	ignore: config.UNCSS.ignore || [/^.is-.*/ig]
 };
-const COMPATIBILITY = config.COMPATIBILITY || [
-	'last 2 versions',
-	'ie >= 9',
-	'ios >= 7',
-	'android >= 4.4'
-];
-
+const COMPATIBILITY = config.COMPATIBILITY;
 
 //TASK FUNCTIONS
 function pages() {
@@ -87,12 +45,12 @@ function pages() {
       origin: config.ORIGIN,
       port: config.PORT
     }))
-    .pipe(sitemap({
+    .pipe($.if(config.INDEX.sitemap, sitemap({
       origin: config.ORIGIN,
       root: PATHS.pages,
-      disallow: config.DISALLOW,
-      robots: true
-    }))
+      disallow: config.INDEX.disallow,
+      robots: config.INDEX.robots
+    })))
     .pipe(gulp.dest(PATHS.dist));
 }
 
