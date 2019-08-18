@@ -47,9 +47,11 @@ You can configure gulp-site builder with **config.yml**
 PORT: 8000
 # Your site production web-root, available in templates, but for dev will be replaced with http://localhost:<port>
 ORIGIN: https://test.test
-# Additional disallow paths for generating robots.txt
-DISALLOW:
-  - /assets/
+
+INDEX:
+  # Additional disallow paths for generating robots.txt
+  disallow:
+    - /assets/
 
 # Autoprefixer will make sure your CSS works with these browsers
 COMPATIBILITY:
@@ -59,13 +61,14 @@ COMPATIBILITY:
   - "android >= 4.4"
 
 # Settings for UnCSS
-UNCSS_OPTIONS:
+UNCSS:
+  enabled: true # false by default, has known UNCSS bug with js execution
   ignore:
-    - !!js/regexp .foundation-mq
     - !!js/regexp ^\.is-.*
 
 # Include this styles and scripts in all pages
 CDN:
+  root: https://cdn.mysite.com/ # will set this to {{cdn}} variable with production build
   js:
     - <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/core.js" integrity="sha256-36hEPcG8mKookfvUVvEqRkpdYV1unP6wvxIqbgdeVhk=" crossorigin="anonymous"></script>
   css:
@@ -87,6 +90,8 @@ PATHS:
     entries: ['/js/app.js'] # scripts entry files
     styles: ['/scss/app.scss'] # styles entry files
 ```
+All configuration options you can see in settings.js file in module folder.
+
 
 ## Building blocks
 ### Pages
@@ -147,47 +152,12 @@ This body will be generated in template like this:
 ### `layouts`
 Layout files can have the extension `.html`, `.hbs`, or `.handlebars`. Default layout provided:
 ```html
-<!doctype html>
-<html class="no-js" lang="en">
-  <head>
-    {{#if site.tagID}}
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src= 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f); })(window,document,'script','dataLayer','{{site.tagID}}');</script> <!-- End Google Tag Manager -->
-    {{/if}}
-    <meta charset="utf-8" />
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}}</title>
-    
-    {{> meta}}
-    
-    {{#if cdn_css}}
-      {{#each cdn_css}}
-    {{{this}}}
-      {{/each}}
-    {{/if}}
-
-    <link rel="stylesheet" href="{{root}}assets/css/app.css">
-  </head>
-<body>
-  {{#if site.tagID}}
-  <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{site.tagID}}"
-  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
-  {{/if}}
-  
+{{#wrap 'html5' this}}
   {{> body}}
-
-  {{#if cdn_js}}
-    {{#each cdn_js}}
-  {{{this}}}
-    {{/each}}
-  {{/if}}
-  <script src="{{root}}assets/js/app.js"></script>
-</body>
-</html>
+{{/wrap}}
 ```
-Yout can customise them calling next command:
+
+You can customise layout by calling next command:
 ```bash
 yarn custom layout:default
 ```
@@ -242,6 +212,53 @@ Gulp-site provide partial {{> meta}} for meta tags generation:
 {{/unless}}
 ```
 
+#### `partial: wrapper`
+Is a special type of partials for wrapping around your code.
+For example `html5` wrapper is contain next code:
+```html
+<!doctype html>
+<html class="no-js" lang="{{site.language}}">
+  <head>
+    {{#if site.tagID}}
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src= 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f); })(window,document,'script','dataLayer','{{site.tagID}}');</script> <!-- End Google Tag Manager -->
+    {{/if}}
+    
+    {{> meta}}
+    
+    {{#if css}}
+      {{#each css}}
+    {{{this}}}
+      {{/each}}
+    {{/if}}
+
+    <link rel="stylesheet" href="{{cdn}}css/app.css?{{timestamp}}">
+  </head>
+<body>
+  {{#if site.tagID}}
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{site.tagID}}"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+  {{/if}}
+  
+  {{{child}}}
+
+  {{#if js}}
+    {{#each js}}
+  {{{this}}}
+    {{/each}}
+  {{/if}}
+  <script src="{{cdn}}js/app.js?{{timestamp}}"></script>
+</body>
+</html>
+```
+Is is like a layout, but replace `{{> body}}` with `{{{child}}}` tag.
+```html
+<!-- Wrapper start up here -->
+{{{child}}}
+<!-- Wrapper end down here -->
+```
+
 ### `helpers`
 Handlebars helpers are `.js` files which export a function via `module.exports`. The name used to register the helper is the same as the name of the file.
 
@@ -275,7 +292,7 @@ Provided default next helpers:
 **{{#markdown}} ... {{/markdown}}** &mdash; render markdown formated text to html
 **{{repeat 3}} ... {{/repeat}}** &mdash; repeate n times content inside of the helper
 **{{#wrap 'partial_name'}} ... {{/wrap}}** &mdash; use selected partial for wraping content inside tags. Partial used in wrap must contain `{{{child}}}` tag, rendered in root context.
-**{{#wrap 'partial_name' withData}} ... {{/wrap}}** &mdash; Partial used in wrap rendered in `withData` context.
+**{{#wrap 'partial_name' withData}} ... {{/wrap}}** &mdash; Partial used in wrap rendered in `withData` context., if withData not set used global context. For current context set `this`.
 
 ### `data`
 Data can be formatted as JSON (`.json`) or YAML (`.yml`). Within a template, the data is stored within a variable with the same name as the file it came from.
