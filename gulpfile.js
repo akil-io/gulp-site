@@ -220,6 +220,11 @@ const generate = require('./lib/generator')({
   partials: PATHS.partials,
 });
 
+const catalog = require('./lib/catalog')({
+  data: PATHS.data,
+  public: PATHS.public
+});
+
 const copy = gulp.parallel(copyAssets, copyPublic, copyContent);
 
 const build = gulp.series(clean, gulp.parallel(pages, javascript, images, copy), sass);
@@ -230,6 +235,7 @@ const init = gulp.series(initTemplate, generate);
 module.exports = {
 	generate,
 	favicon,
+  catalog,
 	build,
   init,
   create
