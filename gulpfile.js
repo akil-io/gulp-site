@@ -116,6 +116,20 @@ function sass() {
     .pipe(browser.reload({ stream: true }));
 }
 
+function templates(){
+  return gulp.src(`${PATHS.templates}/**/*.html`)
+    .pipe($.handlebars({
+      handlebars: require('handlebars')
+    }))
+    .pipe($.wrap(`(() => { var template = Handlebars.template; Handlebars.templates = this; return template(<%= contents %>);})();`))
+    .pipe($.declare({
+      //namespace: 'MyApp.templates',
+      noRedeclare: true, // Avoid duplicate declarations
+    }))
+    .pipe($.concat('_tpl.js'))
+    .pipe(gulp.dest(`${PATHS.assets}/js/`));
+};
+
 function javascript() {
   return gulp.src(PATHS.entries.map(entry => `${PATHS.assets}${entry}`))
     .pipe(named())
@@ -159,6 +173,7 @@ function watch() {
   	`${PATHS.layouts}/**/*.${fileTypes.partial}`,
   	`${PATHS.partials}/**/*.${fileTypes.partial}`
   ]).on('all', gulp.series(resetPages, pages, browser.reload));
+  gulp.watch(`${PATHS.templates}/**/*.html`).on('all', gulp.series(templates, javascript, browser.reload));
   gulp.watch(`src/data/**/*.${fileTypes.data}`).on('all', gulp.series(resetPages, pages, browser.reload));
   gulp.watch(`${PATHS.helpers}/**/*.js`).on('all', gulp.series(resetPages, pages, browser.reload));
   gulp.watch(`${PATHS.assets}/scss/**/*.scss`).on('all', sass);
@@ -227,7 +242,7 @@ const catalog = require('./lib/catalog')({
 
 const copy = gulp.parallel(copyAssets, copyPublic, copyContent);
 
-const build = gulp.series(clean, gulp.parallel(pages, javascript, images, copy), sass);
+const build = gulp.series(clean, templates, gulp.parallel(pages, javascript, images, copy), sass);
 
 const init = gulp.series(initTemplate, generate);
 

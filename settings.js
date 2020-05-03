@@ -53,12 +53,13 @@ const DEFAULT_CONFIG = {
     pages: 'src/pages',
     layouts: 'src/layouts',
     partials: 'src/partials',
+    templates: 'src/templates',
     public: 'src/public',
     assets: 'src/assets',
       data: 'src/data',
       helpers: 'src/helpers',
       sass: [],
-      entries: ['/js/app.js'],
+      entries: ['/js/app.js', '/js/_tpl.js'],
       styles: ['/scss/app.scss']
   },
   CDN: {

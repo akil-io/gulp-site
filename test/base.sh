@@ -13,6 +13,3 @@ cp src/public/mstile-310x310.png src/data/products/id_1/1.png
 node ../bin/cli.js catalog --name products
 
 node ../bin/cli.js build --production
-
-rm -rf dist src
-rm -f .gitignore config.yml faviconData.json

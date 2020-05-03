@@ -1,6 +1,6 @@
 {
   "name": "gulp-site",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "main": "gulpfile.js",
   "repository": {
     "type": "git",
@@ -30,7 +30,9 @@
     "gulp-clean-css": "^4.2.0",
     "gulp-cli": "^2.2.0",
     "gulp-concat": "^2.6.1",
+    "gulp-declare": "^0.3.0",
     "gulp-extname": "^0.2.2",
+    "gulp-handlebars": "^5.0.2",
     "gulp-if": "^3.0.0",
     "gulp-imagemin": "^6.2.0",
     "gulp-load-plugins": "^2.0.1",
@@ -39,6 +41,7 @@
     "gulp-sass": "^4.0.2",
     "gulp-sourcemaps": "^2.6.5",
     "gulp-uglify": "^3.0.2",
+    "gulp-wrap": "^0.15.0",
     "handlebars": "^4.5.3",
     "highlight.js": "^9.16.2",
     "js-yaml": "^3.13.1",
