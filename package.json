@@ -1,6 +1,6 @@
 {
   "name": "gulp-site",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "main": "gulpfile.js",
   "repository": {
     "type": "git",
@@ -33,6 +33,7 @@
     "gulp-declare": "^0.3.0",
     "gulp-extname": "^0.2.2",
     "gulp-handlebars": "^5.0.2",
+    "gulp-header": "^2.0.9",
     "gulp-if": "^3.0.0",
     "gulp-imagemin": "^6.2.0",
     "gulp-load-plugins": "^2.0.1",

@@ -127,6 +127,7 @@ function templates(){
       noRedeclare: true, // Avoid duplicate declarations
     }))
     .pipe($.concat('_tpl.js'))
+    .pipe($.header(`import "handlebars/dist/handlebars.runtime.js";\n\n`))
     .pipe(gulp.dest(`${PATHS.assets}/js/`));
 };
 
