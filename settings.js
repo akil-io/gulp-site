@@ -59,7 +59,7 @@ const DEFAULT_CONFIG = {
       data: 'src/data',
       helpers: 'src/helpers',
       sass: [],
-      entries: ['/js/app.js', '/js/_tpl.js'],
+      entries: ['/js/app.js'],
       styles: ['/scss/app.scss']
   },
   CDN: {

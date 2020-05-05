@@ -127,8 +127,12 @@ function templates(){
       noRedeclare: true, // Avoid duplicate declarations
     }))
     .pipe($.concat('_tpl.js'))
-    .pipe($.header(`import "handlebars/dist/handlebars.runtime.js";\n\n`))
-    .pipe(gulp.dest(`${PATHS.assets}/js/`));
+    .pipe($.if(PRODUCTION, $.uglify()
+      .on('error', e => { util.log(e); })
+    ))
+    .pipe($.header(fs.readFileSync("node_modules/handlebars/dist/handlebars.runtime.min.js", "utf8")))
+    .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
+    .pipe(gulp.dest(PATHS.dist + '/assets/js'));
 };
 
 function javascript() {
