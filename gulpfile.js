@@ -61,6 +61,11 @@ function clean(done) {
 
 function copyAssets() {
   return gulp.src([
+      ...util.getPlugins().reduce((a, c) => {
+        a.push(`/node_modules/${c}/src/assets/**/*`);
+        a.push(`!/node_modules/${c}/src/assets/{img,js,scss}/**/*`);
+        return a;
+      }, []),
   		`${PATHS.assets}/**/*`,
   		`!${PATHS.assets}/{img,js,scss}/**/*`
   	])
@@ -68,7 +73,10 @@ function copyAssets() {
 }
 
 function copyPublic() {
-  return gulp.src(`${PATHS.public}/**/*`)
+  return gulp.src([
+      ...util.getPlugins().map(p => `/node_modules/${p}/src/public/**/*`),
+      `${PATHS.public}/**/*`
+    ])
     .pipe(gulp.dest(PATHS.dist + '/'));
 }
 
@@ -103,7 +111,7 @@ function sass() {
     }, UNCSS_OPTIONS))
   ].filter(Boolean);
 
-  return gulp.src(PATHS.styles.map(entry => `${PATHS.assets}${entry}`))
+  return gulp.src(PATHS.styles.map(entry => (entry.slice(0, 5) === 'node_')?entry:`${PATHS.assets}${entry}`))
   	.pipe($.sourcemaps.init())
     .pipe($.sass({
       includePaths: PATHS.sass

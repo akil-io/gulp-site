@@ -2,6 +2,7 @@ const yargs = require('yargs');
 const path = require('path');
 const util = require('./lib/util');
 const extend = require('deepmerge');
+const _ = require('lodash');
 
 const PRODUCTION = !!(yargs.argv.production);
 
@@ -68,8 +69,28 @@ const DEFAULT_CONFIG = {
     css: []
   }
 };
-const CUSTOM_CONFIG= util.loadConfig(util.path('config.yml'), true);
-const CONFIG = extend(DEFAULT_CONFIG, CUSTOM_CONFIG);
+const CUSTOM_CONFIG = util.loadConfig(util.path('config.yml'), true);
+let pluginConfigs = util.getPlugins().map(p => {
+  let cfg = util.loadConfig(util.path(`node_modules/${p}/config.yml`), true);
+  return {
+    PATHS: {
+      sass: _.get(cfg, 'PATHS.sass', []),
+      entries: _.get(cfg, 'PATHS.entries', []).map(s => `node_modules/${p}/src/assets${s}`),
+      styles: _.get(cfg, 'PATHS.styles', []).map(s => `node_modules/${p}/src/assets${s}`)
+    },
+    CDN: {
+      js: _.get(cfg, 'CDN.js', []),
+      css: _.get(cfg, 'CDN.css', [])
+    }
+  };
+});
+let CONFIG = extend({}, DEFAULT_CONFIG);
+for (let configItem of pluginConfigs) {
+  console.log(`PLUGIN CONFIG: `, configItem);
+  CONFIG = extend(CONFIG, configItem);
+}
+
+CONFIG = extend(CONFIG, CUSTOM_CONFIG);
 
 if (!CUSTOM_CONFIG.ORIGIN && CUSTOM_CONFIG.PORT) CONFIG.ORIGIN = `http://localhost:${CONFIG.PORT}`;
 
