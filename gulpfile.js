@@ -27,8 +27,8 @@ const webpackConfig = config.WEBPACK;
 const fileTypes = util.fileTypes;
 const PATHS = config.PATHS;
 const UNCSS_OPTIONS = {
-	html: config.UNCSS.html || `${PATHS.dist}/**/*.html`,
-	ignore: config.UNCSS.ignore || [/^.is-.*/ig]
+  html: config.UNCSS.html || `${PATHS.dist}/**/*.html`,
+  ignore: config.UNCSS.ignore || [/^.is-.*/ig]
 };
 const COMPATIBILITY = config.COMPATIBILITY;
 
@@ -62,28 +62,28 @@ function clean(done) {
 function copyAssets() {
   return gulp.src([
       ...util.getPlugins().reduce((a, c) => {
-        a.push(`/node_modules/${c}/src/assets/**/*`);
-        a.push(`!/node_modules/${c}/src/assets/{img,js,scss}/**/*`);
+        a.push(`node_modules/${c}/src/assets/**/*`);
+        a.push(`!node_modules/${c}/src/assets/{img,js,scss}/**/*`);
         return a;
       }, []),
-  		`${PATHS.assets}/**/*`,
-  		`!${PATHS.assets}/{img,js,scss}/**/*`
-  	])
+      `${PATHS.assets}/**/*`,
+      `!${PATHS.assets}/{img,js,scss}/**/*`
+    ])
     .pipe(gulp.dest(PATHS.dist + '/assets'));
 }
 
 function copyPublic() {
   return gulp.src([
-      ...util.getPlugins().map(p => `/node_modules/${p}/src/public/**/*`),
+      ...util.getPlugins().map(p => `node_modules/${p}/src/public/**/*`),
       `${PATHS.public}/**/*`
     ])
     .pipe(gulp.dest(PATHS.dist + '/'));
 }
 
 function copyContent() {
-	return gulp.src([
-  		`${PATHS.data}/**/*.${fileTypes.content}`
-  	])
+  return gulp.src([
+      `${PATHS.data}/**/*.${fileTypes.content}`
+    ])
     .pipe(gulp.dest(PATHS.dist + '/files'));
 }
 
@@ -112,7 +112,7 @@ function sass() {
   ].filter(Boolean);
 
   return gulp.src(PATHS.styles.map(entry => (entry.slice(0, 5) === 'node_')?entry:`${PATHS.assets}${entry}`))
-  	.pipe($.sourcemaps.init())
+    .pipe($.sourcemaps.init())
     .pipe($.sass({
       includePaths: PATHS.sass
     })
@@ -125,11 +125,14 @@ function sass() {
 }
 
 function templates(){
-  return gulp.src(`${PATHS.templates}/**/*.html`)
+  return gulp.src([
+      ...util.getPlugins().map(p => `node_modules/${p}/src/templates/**/*.html`),
+      `${PATHS.templates}/**/*.html`
+    ])
     .pipe($.handlebars({
       handlebars: require('handlebars')
     }))
-    .pipe($.wrap(`(() => { var template = Handlebars.template; Handlebars.templates = this; return template(<%= contents %>);})();`))
+    .pipe($.wrap(`template(<%= contents %>)`))
     .pipe($.declare({
       //namespace: 'MyApp.templates',
       noRedeclare: true, // Avoid duplicate declarations
@@ -138,6 +141,7 @@ function templates(){
     .pipe($.if(PRODUCTION, $.uglify()
       .on('error', e => { util.log(e); })
     ))
+    .pipe($.header(`\nvar template = Handlebars.template; Handlebars.templates = this;\n`))
     .pipe($.header(fs.readFileSync("node_modules/handlebars/dist/handlebars.runtime.min.js", "utf8")))
     .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
     .pipe(gulp.dest(PATHS.dist + '/assets/js'));
@@ -177,20 +181,20 @@ function reload(done) {
 
 function watch() {
   gulp.watch([
-  		`${PATHS.assets}/**/*`,
-  		`!${PATHS.assets}/{img,js,scss}/**/*`
+      `${PATHS.assets}/**/*`,
+      `!${PATHS.assets}/{img,js,scss}/**/*`
   ], copyAssets);
   gulp.watch(PATHS.public, copyPublic);
   gulp.watch(`${PATHS.pages}/**/*.${fileTypes.page}`).on('all', gulp.series(pages, browser.reload));
   gulp.watch([
-  	`${PATHS.layouts}/**/*.${fileTypes.partial}`,
-  	`${PATHS.partials}/**/*.${fileTypes.partial}`
+    `${PATHS.layouts}/**/*.${fileTypes.partial}`,
+    `${PATHS.partials}/**/*.${fileTypes.partial}`
   ]).on('all', gulp.series(resetPages, pages, browser.reload));
   gulp.watch(`${PATHS.templates}/**/*.html`).on('all', gulp.series(templates, javascript, browser.reload));
   gulp.watch(`src/data/**/*.${fileTypes.data}`).on('all', gulp.series(resetPages, pages, browser.reload));
   gulp.watch(`${PATHS.helpers}/**/*.js`).on('all', gulp.series(resetPages, pages, browser.reload));
   gulp.watch(`${PATHS.assets}/scss/**/*.scss`).on('all', sass);
-  gulp.watch(`${PATHS.assets}/js/**/*.js`).on('all', gulp.series(javascript, browser.reload));
+  gulp.watch(`${PATHS.assets}/js/**/*.js`, { delay: 1000 }).on('all', gulp.series(javascript, browser.reload));
   gulp.watch(`${PATHS.assets}/img/**/*`).on('all', gulp.series(images, browser.reload));
 }
 
@@ -261,10 +265,15 @@ const init = gulp.series(initTemplate, generate);
 
 //EXPORTS
 module.exports = {
-	generate,
-	favicon,
+  copyAssets,
+  copyPublic,
+  templates,
+  javascript,
+  sass,
+  generate,
+  favicon,
   catalog,
-	build,
+  build,
   init,
   create
 };
