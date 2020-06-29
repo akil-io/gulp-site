@@ -270,6 +270,7 @@ module.exports = {
   templates,
   javascript,
   sass,
+  pages,
   generate,
   favicon,
   catalog,
