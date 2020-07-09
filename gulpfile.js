@@ -254,7 +254,10 @@ const generate = require('./lib/generator')({
 
 const catalog = require('./lib/catalog')({
   data: PATHS.data,
-  public: PATHS.public
+  public: PATHS.public,
+  origin: config.ORIGIN,
+  siteName: config.SITE.name,
+  companyName: config.SITE.company.name
 });
 
 const copy = gulp.parallel(copyAssets, copyPublic, copyContent);

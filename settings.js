@@ -91,6 +91,7 @@ for (let configItem of pluginConfigs) {
 }
 
 CONFIG = extend(CONFIG, CUSTOM_CONFIG);
+CONFIG.SITE = util.loadConfig(util.path('src/data/site.yml'), true);
 
 if (!CUSTOM_CONFIG.ORIGIN && CUSTOM_CONFIG.PORT) CONFIG.ORIGIN = `http://localhost:${CONFIG.PORT}`;
 
