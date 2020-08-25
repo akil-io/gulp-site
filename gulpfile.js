@@ -256,8 +256,8 @@ const catalog = require('./lib/catalog')({
   data: PATHS.data,
   public: PATHS.public,
   origin: config.ORIGIN,
-  siteName: config.SITE.name,
-  companyName: config.SITE.company.name
+  siteName: config.SITE.name ? config.SITE.name : "siteName",
+  companyName: config.SITE.company ? config.SITE.company.name : "companyName"
 });
 
 const copy = gulp.parallel(copyAssets, copyPublic, copyContent);
