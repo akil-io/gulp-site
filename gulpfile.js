@@ -19,7 +19,11 @@ const sitemap = require('./lib/sitemap');
 const config = require('./settings');
 
 const PRODUCTION = config.PRODUCTION;
-const $ = plugins();
+const $ = plugins({
+  postRequireTransforms: {
+    sass: (sass) => sass(require('sass'))
+  }
+});
 
 const faviconConfig = config.FAVICON;
 const webpackConfig = config.WEBPACK;
